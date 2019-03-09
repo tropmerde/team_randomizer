@@ -1,25 +1,26 @@
 
-
+import pprint
 from collections import deque
 import random
 import pprint
 from copy import deepcopy
 import math
+from argparse import ArgumentParser
 
 class Randomizer():
 
-	def __init__(self, players, teams=4, team_size=6):
+	def __init__(self, players, teams=4, team_size=6, strength_threshold=0.25, distribute_female_equally=False):
 		"""
 		"""
 
-		self.strength_threshold = 0.5
+		self.strength_threshold = strength_threshold
 
 		self.all_players = deepcopy(players)
 
 		self.players = None
 		self.team_size = team_size
 
-		self.distribute_female_equally = False
+		self.distribute_female_equally = distribute_female_equally
 
 		self.team1 = deque(maxlen=self.team_size)
 		self.team2 = deque(maxlen=self.team_size)
@@ -198,215 +199,84 @@ class Randomizer():
 
 
 if __name__ == "__main__":
-	players = {
-        # Boys
-        'TD': {
-            'level': 1.5,
-            'gender': "m",
-        },
-        'Pouthy': {
-            'level': 2,
-            'gender': "m",
-        },
-        'Daniel': {
-            'level': 1.25,
-            'gender': "m",
-        },
-        'DLao': {
-            'level': 1.75,
-            'gender': "m",
-        },
-        'Derek': {
-            'level': 1.75,
-            'gender': "m",
-        },
-        'Jean': {
-            'level': 1.75,
-            'gender': "m",
-        },
-        'Francis': {
-            'level': 2,
-            'gender': "m",
-        },
-        'Julien': {
-            'level': 1.75,
-            'gender': "m",
-        },
-        'Benny': {
-            'level': 1.75,
-            'gender': "m",
-        },
-        'Lan': {
-            'level': 1.75,
-            'gender': "m",
-        },
-        'Greg': {
-            'level': 1.75,
-            'gender': "m",
-        },
-        'Khao': {
-            'level': 2,
-            'gender': "m",
-        },
-        'Paradis': {
-            'level': 2,
-            'gender': "m",
-        },
-        'Kiet': {
-            'level': 2,
-            'gender': "m",
-        },
-        'Henry Hu': {
-            'level': 1.75,
-            'gender': "m",
-        },
-        'Raks': {
-            'level': 1,
-            'gender': "m",
-        },
-		'Ozzy': {
-            'level': 1.25,
-            'gender': "m",
-        },
-		'Fred': {
-            'level': 1.5,
-            'gender': "m",
-        },
-		'Henry Dam': {
-            'level': 1.25,
-            'gender': "m",
-        },
-		'David Chhean': {
-            'level': 1.25,
-            'gender': "m",
-        },
-		'Gurs': {
-            'level': 1.25,
-            'gender': "m",
-        },
-		'Sunny': {
-            'level': 1.25,
-            'gender': "m",
-        },
+	parser = ArgumentParser()
 
-		'Carlos': {
-            'level': 1.25,
-            'gender': "m",
-        },
-		'Mohammed': {
-            'level': 1.25,
-            'gender': "m",
-        },
-		'Pierre': {
-            'level': 1.25,
-            'gender': "m",
-        },
-		'Jean-Luc': {
-            'level': 1,
-            'gender': "m",
-        },
-		'Jamie': {
-            'level': 1.5,
-            'gender': "m",
-        },
-		'Chau': {
-            'level': 2,
-            'gender': "m",
-        },
+	parser.add_argument("-f", "--file", dest="filename", help="Participants CSV file.", required=True)
+	parser.add_argument("-t", "--threshold", dest="strength_threshold", type=float, help="Strength difference threshold.", default=0.25)
+	parser.add_argument("-d", "--distribute", dest="distribute_females", type=bool, help="Distribute females equally.", default=False)
+	args = parser.parse_args()
 
+	players = dict()
+	with open(args.filename) as file:
+		for line in file.readlines():
+			player = line.split(',')[0]
+			gender = line.split(',')[1]
+			level = line.split(',')[2]
 
-        # Girls
-		'Hyba': {
-            'level': 1,
-            'gender': "f",
-        },
-		'Monica': {
-            'level': 0.5,
-            'gender': "f",
-        },
-        'Ania': {
-            'level': 1,
-            'gender': "f",
-        },
-        'Bao': {
-            'level': 1,
-            'gender': "f",
-        },
-        'Nhu Ai': {
-            'level': 0.25,
-            'gender': "f",
-        },
-		'Kathleen': {
-            'level': 0.5,
-            'gender': "f",
-        },
-		'Jojo': {
-            'level': 0.5,
-            'gender': "f",
-        },
-		'Ashley': {
-            'level': 0.75,
-            'gender': "f",
-        },
-    }
+			players.update({
+				player: {
+					'level': float(level),
+					'gender': gender,
+				}
+			})
 
 	print("Number of players = {0}".format(len(players)))
 
 	number_of_teams = 4 if len(players) <= 24 else 6
-	randomizer = Randomizer(players=players, teams=number_of_teams, team_size=6)
+	randomizer = Randomizer(players=players, teams=number_of_teams, team_size=6, strength_threshold=strength_threshold, distribute_female_equally=distribute_females)
 	print("Randomizing teams...")
 	randomizer.randomize()
 
-	print ("TEAM 1")
+	print("TEAM 1")
 	team_1_strength = 0
 	for player in randomizer.team1:
-		print player
+		print(player)
 		team_1_strength += players[player]['level']
-	print ""
-	print "TEAM 1 strength: {0}".format(team_1_strength)
-	print "\n"
+	print("")
+	print("TEAM 1 strength: {0}".format(team_1_strength))
+	print("\n")
 
-	print ("TEAM 2")
+	print("TEAM 2")
 	team_2_strength = 0
 	for player in randomizer.team2:
-		print player
+		print(player)
 		team_2_strength += players[player]['level']
-	print ""
-	print "TEAM 2 strength: {0}".format(team_2_strength)
-	print "\n"
+	print("")
+	print("TEAM 2 strength: {0}".format(team_2_strength))
+	print("\n")
 
-	print ("TEAM 3")
+	print("TEAM 3")
 	team_3_strength = 0
 	for player in randomizer.team3:
-		print player
+		print(player)
 		team_3_strength += players[player]['level']
-	print ""
-	print "TEAM 3 strength: {0}".format(team_3_strength)
-	print "\n"
+	print("")
+	print("TEAM 3 strength: {0}".format(team_3_strength))
+	print("\n")
 
-	print ("TEAM 4")
+	print("TEAM 4")
 	team_4_strength = 0
 	for player in randomizer.team4:
-		print player
+		print(player)
 		team_4_strength += players[player]['level']
-	print ""
-	print "TEAM 4 strength: {0}".format(team_4_strength)
-	print "\n"
+	print("")
+	print("TEAM 4 strength: {0}".format(team_4_strength))
+	print("\n")
 
 	if number_of_teams > 4:
-		print ("TEAM 5")
+		print("TEAM 5")
 		team_5_strength = 0
 		for player in randomizer.team5:
-			print player
+			print(player)
 			team_5_strength += players[player]['level']
-		print ""
-		print "TEAM 5 strength: {0}".format(team_5_strength)
-		print "\n"
+		print("")
+		print("TEAM 5 strength: {0}".format(team_5_strength))
+		print("\n")
 
-		print ("TEAM 6")
+		print("TEAM 6")
 		team_6_strength = 0
 		for player in randomizer.team6:
-			print player
+			print(player)
 			team_6_strength += players[player]['level']
-		print ""
-		print "TEAM 6 strength: {0}".format(team_6_strength)
+		print("")
+		print("TEAM 6 strength: {0}".format(team_6_strength))
